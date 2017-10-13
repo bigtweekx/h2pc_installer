@@ -1,13 +1,14 @@
-############################################################################################
-#      NSIS Installation Script created by NSIS Quick Setup Script Generator v1.09.18
-#               Entirely Edited with NullSoft Scriptable Installation System                
-#              by Vlasis K. Barkas aka Red Wine red_wine@freemail.gr Sep 2006               
-############################################################################################
+# Halo 2 Project Cartographer installer
+
+#Includes code created using:
+#NSIS Installation Script created by NSIS Quick Setup Script Generator v1.09.18
+#Entirely Edited with NullSoft Scriptable Installation System                
+#by Vlasis K. Barkas aka Red Wine red_wine@freemail.gr Sep 2006               
 
 !define APP_NAME "Halo 2 Project Cartographer"
 !define COMP_NAME "H2PC"
 !define WEB_SITE "www.halo2.online"
-!define VERSION "01.00.00.00"
+!define VERSION "01.01.00.00"
 !define COPYRIGHT "H2PC"
 !define DESCRIPTION "H2PC Installer"
 !define INSTALLER_NAME "C:\Git\h2pc_installer\h2pc_setup.exe"
@@ -117,6 +118,7 @@ Section -MainProgram
 
 CreateDirectory $INSTDIR\maps  ;Start map extract
 
+;Section 1 - Campaign maps (1/2) and temp installers for .net and directx
 InitPluginsDir
 ; Call plug-in. Push filename to ZIP first, and the dest. folder last.
 DetailPrint "Extracting files1.zip, this may take a while (1GB)"
@@ -129,6 +131,7 @@ StrCmp $0 "success" ok1
 Abort
 ok1:
 
+;Section 2 - Campaign maps (2/2)
 InitPluginsDir
 ; Call plug-in. Push filename to ZIP first, and the dest. folder last.
 DetailPrint "Extracting files2.zip, this may take a while (1GB)"
@@ -141,6 +144,7 @@ StrCmp $0 "success" ok2
 Abort
 ok2:
 
+;Section 3 - MP Maps, shared maps and mainmenu
 InitPluginsDir
 ; Call plug-in. Push filename to ZIP first, and the dest. folder last.
 DetailPrint "Extracting files3.zip, this may take a while (1GB)"
@@ -152,6 +156,20 @@ StrCmp $0 "success" ok3
   MessageBox MB_OK|MB_ICONSTOP "Install failed. $0 files3.zip Please make sure the file is unblocked or download the file again."
 Abort
 ok3: ;end map extract
+
+;Section 4 - Custom Maps
+CreateDirectory "$DOCUMENTS\My Games\Halo 2\Maps"
+InitPluginsDir
+; Call plug-in. Push filename to ZIP first, and the dest. folder last.
+DetailPrint "Extracting files4.zip, this may take a while (400MB)"
+nsisunz::UnzipToLog "$EXEDIR\files4.zip" "$DOCUMENTS\My Games\Halo 2\Maps"
+; Always check result on stack
+Pop $0
+StrCmp $0 "success" ok4
+  DetailPrint "$0" ;print error message to log
+  MessageBox MB_OK|MB_ICONSTOP "Install failed. $0 files4.zip Please make sure the file is unblocked or download the file again."
+Abort
+ok4: ;end map extract
 
 ${INSTALL_TYPE}
 SetOverwrite ifnewer
@@ -263,7 +281,7 @@ File "C:\Games\Halo 2 Project Cartographer\icons\doc_savegame.ico"
 SetOutPath "$INSTDIR\Temp\vcredist"
 File "C:\Git\h2pc_installer\vcredist\vcredist_x86.exe"
 
-AddSize 3700000 ;add 3.7gb to the installer record to account for the zip files
+AddSize 4000000 ;add 4.0 gb to the installer record to account for the zip files
 SectionEnd
 
 ;Sections for dependencies install
@@ -288,12 +306,12 @@ Section "dotNET 4.5 Install"
 DetailPrint "Running .NET 4.5 setup..."
 ExecWait '"$INSTDIR\maps\dotnetfx452.exe" /passive /norestart' $netSetupError
 ${If} $netSetupError != "0"
-	MessageBox MB_OK|MB_ICONSTOP "Issue with .NET 4.5 install, you may have issues with the launcher"
+	MessageBox MB_OK|MB_ICONSTOP "Issue with .NET 4.5 install, you may encounter problems with the launcher."
 	DetailPrint ".NET 4.5 not installed"
 ${EndIf}
 DetailPrint "Finished .NET 4.5 setup. Return code: $netSetupError"
  ;MessageBox MB_OK|MB_ICONSTOP "return code: $netSetupError"
-Delete "$INSTDIR\maps\dotnetfx35.exe"
+Delete "$INSTDIR\maps\dotnetfx452.exe"
  ;error_dotnet:
  ;Abort
  ;Delete "$INSTDIR\Temp\vcredist\dotnetfx35.exe"
@@ -362,11 +380,11 @@ WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "URLInfoAbout" "${WEB_SITE}"
 ; Writes Halo 2 registry keys for install directory. Different for x64 or x86 versions of windows
 ${If} ${RunningX64}
   SetRegView 64
-  WriteRegStr HKLM "SOFTWARE\WOW6432Node\Microsoft\Microsoft Games\Halo 2\1.0" GameInstallDir $INSTDIR
+  WriteRegStr HKLM "SOFTWARE\WOW6432Node\Microsoft\Microsoft Games\Halo 2\1.0" GameInstallDir "$INSTDIR\"
   DetailPrint "x64" 
 ${Else}
   SetRegView 32
-  WriteRegStr HKLM "SOFTWARE\Microsoft\Microsoft Games\Halo 2\1.0\" GameInstallDir $INSTDIR
+  WriteRegStr HKLM "SOFTWARE\Microsoft\Microsoft Games\Halo 2\1.0\" GameInstallDir "$INSTDIR\"
   DetailPrint "x32" 
 ${EndIf}
 
@@ -519,6 +537,16 @@ RmDir "$SMPROGRAMS\Halo 2 Project Cartographer"
 
 DeleteRegKey ${REG_ROOT} "${REG_APP_PATH}"
 DeleteRegKey ${REG_ROOT} "${UNINSTALL_PATH}"
+
+${If} ${RunningX64}
+  SetRegView 64
+  DeleteRegKey HKLM "SOFTWARE\WOW6432Node\Microsoft\Microsoft Games\Halo 2\1.0"
+  DetailPrint "x64" 
+${Else}
+  SetRegView 32
+  DeleteRegKey HKLM "SOFTWARE\Microsoft\Microsoft Games\Halo 2\1.0\"
+  DetailPrint "x32" 
+${EndIf}
 SectionEnd
 
 ######################################################################
