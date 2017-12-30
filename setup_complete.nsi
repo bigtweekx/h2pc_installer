@@ -3,12 +3,14 @@
 #Includes code created using:
 #NSIS Installation Script created by NSIS Quick Setup Script Generator v1.09.18
 #Entirely Edited with NullSoft Scriptable Installation System                
-#by Vlasis K. Barkas aka Red Wine red_wine@freemail.gr Sep 2006               
+#by Vlasis K. Barkas aka Red Wine red_wine@freemail.gr Sep 2006    
 
+RequestExecutionLevel admin
+      
 !define APP_NAME "Halo 2 Project Cartographer"
 !define COMP_NAME "H2PC"
 !define WEB_SITE "www.halo2.online"
-!define VERSION "01.01.00.00"
+!define VERSION "01.5.00.00"
 !define COPYRIGHT "H2PC"
 !define DESCRIPTION "H2PC Installer"
 !define INSTALLER_NAME "C:\Git\h2pc_installer\h2pc_setup.exe"
@@ -50,22 +52,20 @@ InstallDir "C:\Games\Halo 2 Project Cartographer"
 !include "DirectSetup.nsh"
 !include "x64.nsh"
 !include "LogicLib.nsh"
+!include "psexec.nsh" 
+!include "Sections.nsh"
 !define MUI_FINISHPAGE_NOAUTOCLOSE
 !define MUI_ABORTWARNING
 !define MUI_UNABORTWARNING
 
 !define MUI_ICON "doc_map.ico"
 ;!define MUI_HEADERIMAGE_BITMAP "logo.png"
-
 !insertmacro MUI_PAGE_WELCOME
-
 ;!insertmacro MUI_PAGE_LICENSE "termsofservice.rtf"
 
 !define MUI_PAGE_CUSTOMFUNCTION_SHOW LicenseShow
 !insertmacro MUI_PAGE_LICENSE "termsofservice.rtf"
-
 LicenseForceSelection checkbox
-
 Function LicenseShow
  ScrollLicense::Set /NOUNLOAD
 FunctionEnd
@@ -96,7 +96,7 @@ FunctionEnd
 !define MUI_FINISHPAGE_SHOWREADME_FUNCTION finishpageaction
  */
 
-!define MUI_FINISHPAGE_RUN "$INSTDIR\${MAIN_APP_EXE}"
+!define MUI_FINISHPAGE_RUN "$INSTDIR\H2Launcher.exe"
 !define MUI_FINISHPAGE_RUN_TEXT "Start Launcher to login and play"
 ;!define MUI_FINISHPAGE_RUN_TEXT "Run the launcher to login and play Halo 2? May take a while for window to appear, please be patient"
 !define MUI_FINISHPAGE_SHOWREADME_TEXT 
@@ -115,173 +115,49 @@ ShowInstDetails show
 ######################################################################
 
 Section -MainProgram
-
-CreateDirectory $INSTDIR\maps  ;Start map extract
-
-;Section 1 - Campaign maps (1/2) and temp installers for .net and directx
-InitPluginsDir
-; Call plug-in. Push filename to ZIP first, and the dest. folder last.
-DetailPrint "Extracting files1.zip, this may take a while (1GB)"
-nsisunz::UnzipToLog "$EXEDIR\files1.zip" "$INSTDIR\maps"
-; Always check result on stack
-Pop $0
-StrCmp $0 "success" ok1
-  DetailPrint "$0" ;print error message to log
-  MessageBox MB_OK|MB_ICONSTOP "Install failed. $0 files1.zip Please make sure the file is unblocked or download the file again."
-Abort
-ok1:
-
-;Section 2 - Campaign maps (2/2)
-InitPluginsDir
-; Call plug-in. Push filename to ZIP first, and the dest. folder last.
-DetailPrint "Extracting files2.zip, this may take a while (1GB)"
-nsisunz::UnzipToLog "$EXEDIR\files2.zip" "$INSTDIR\maps"
-; Always check result on stack
-Pop $0
-StrCmp $0 "success" ok2
-  DetailPrint "$0" ;print error message to log
-  MessageBox MB_OK|MB_ICONSTOP "Install failed. $0 files2.zip Please make sure the file is unblocked or download the file again."
-Abort
-ok2:
-
-;Section 3 - MP Maps, shared maps and mainmenu
-InitPluginsDir
-; Call plug-in. Push filename to ZIP first, and the dest. folder last.
-DetailPrint "Extracting files3.zip, this may take a while (1GB)"
-nsisunz::UnzipToLog "$EXEDIR\files3.zip" "$INSTDIR\maps"
-; Always check result on stack
-Pop $0
-StrCmp $0 "success" ok3
-  DetailPrint "$0" ;print error message to log
-  MessageBox MB_OK|MB_ICONSTOP "Install failed. $0 files3.zip Please make sure the file is unblocked or download the file again."
-Abort
-ok3: ;end map extract
-
-;Section 4 - Custom Maps
-CreateDirectory "$DOCUMENTS\My Games\Halo 2\Maps"
-InitPluginsDir
-; Call plug-in. Push filename to ZIP first, and the dest. folder last.
-DetailPrint "Extracting files4.zip, this may take a while (400MB)"
-nsisunz::UnzipToLog "$EXEDIR\files4.zip" "$DOCUMENTS\My Games\Halo 2\Maps"
-; Always check result on stack
-Pop $0
-StrCmp $0 "success" ok4
-  DetailPrint "$0" ;print error message to log
-  MessageBox MB_OK|MB_ICONSTOP "Install failed. $0 files4.zip Please make sure the file is unblocked or download the file again."
-Abort
-ok4: ;end map extract
-
 ${INSTALL_TYPE}
 SetOverwrite ifnewer
-SetOutPath "$INSTDIR" ;start base game file install
-File "C:\Games\Halo 2 Project Cartographer\activate.exe"
-File "C:\Games\Halo 2 Project Cartographer\Durazno.exe"
-File "C:\Games\Halo 2 Project Cartographer\gungame.ini"
-File "C:\Games\Halo 2 Project Cartographer\H2Launcher.exe"
-File "C:\Games\Halo 2 Project Cartographer\h2startup1.ini"
-File "C:\Games\Halo 2 Project Cartographer\halo2.exe"
-File "C:\Games\Halo 2 Project Cartographer\halo2.exe.cat"
-File "C:\Games\Halo 2 Project Cartographer\halo2.exe.cfg"
-File "C:\Games\Halo 2 Project Cartographer\halo2final.ini"
-File "C:\Games\Halo 2 Project Cartographer\ImeUiRes.dll"
-File "C:\Games\Halo 2 Project Cartographer\launch.cab"
-File "C:\Games\Halo 2 Project Cartographer\loading.bin"
-File "C:\Games\Halo 2 Project Cartographer\MF.dll"
-File "C:\Games\Halo 2 Project Cartographer\mspac.dll"
-File "C:\Games\Halo 2 Project Cartographer\mspacres.dll"
-File "C:\Games\Halo 2 Project Cartographer\mss32.dll"
-File "C:\Games\Halo 2 Project Cartographer\mssdsp.flt"
-File "C:\Games\Halo 2 Project Cartographer\PCCompat.dll"
-File "C:\Games\Halo 2 Project Cartographer\Resource.dll"
-File "C:\Games\Halo 2 Project Cartographer\sldlext.dll"
-File "C:\Games\Halo 2 Project Cartographer\SLDL_DLL.dll"
-File "C:\Games\Halo 2 Project Cartographer\startup.exe"
-File "C:\Games\Halo 2 Project Cartographer\TnPCacheEngine.exe"
-File "C:\Games\Halo 2 Project Cartographer\TnPUI.dll"
-File "C:\Games\Halo 2 Project Cartographer\ts3client_win32.dll"
-File "C:\Games\Halo 2 Project Cartographer\ts3server_win32.dll"
-File "C:\Games\Halo 2 Project Cartographer\xinput9_1_0.dll"
-;File "C:\Games\Halo 2 Project Cartographer\xlive.dll" ;not needed b/c launcher should download
-;File "C:\Games\Halo 2 Project Cartographer\xlive.ini"
-SetOutPath "$INSTDIR\xinput\p02"
-File "C:\Games\Halo 2 Project Cartographer\xinput\p02\xinput9_1_0.dll"
-SetOutPath "$INSTDIR\sounds"
-File "C:\Games\Halo 2 Project Cartographer\sounds\infected.wav"
-File "C:\Games\Halo 2 Project Cartographer\sounds\infection.wav"
-File "C:\Games\Halo 2 Project Cartographer\sounds\last_man_standing.wav"
-File "C:\Games\Halo 2 Project Cartographer\sounds\new_zombie.wav"
-SetOutPath "$INSTDIR\soundbackends"
-File "C:\Games\Halo 2 Project Cartographer\soundbackends\directsound_win32.dll"
-File "C:\Games\Halo 2 Project Cartographer\soundbackends\windowsaudiosession_win32.dll"
-SetOutPath "$INSTDIR\privacy"
-File "C:\Games\Halo 2 Project Cartographer\privacy\Privacy.htm"
-File "C:\Games\Halo 2 Project Cartographer\privacy\Privacy_da.htm"
-File "C:\Games\Halo 2 Project Cartographer\privacy\Privacy_de.htm"
-File "C:\Games\Halo 2 Project Cartographer\privacy\Privacy_en.htm"
-File "C:\Games\Halo 2 Project Cartographer\privacy\Privacy_es.htm"
-File "C:\Games\Halo 2 Project Cartographer\privacy\Privacy_fr.htm"
-File "C:\Games\Halo 2 Project Cartographer\privacy\Privacy_it.htm"
-File "C:\Games\Halo 2 Project Cartographer\privacy\Privacy_jp.htm"
-File "C:\Games\Halo 2 Project Cartographer\privacy\Privacy_ko.htm"
-File "C:\Games\Halo 2 Project Cartographer\privacy\Privacy_no.htm"
-File "C:\Games\Halo 2 Project Cartographer\privacy\Privacy_sv.htm"
-File "C:\Games\Halo 2 Project Cartographer\privacy\Privacy_zh-Hant.htm"
-SetOutPath "$INSTDIR\movie"
-File "C:\Games\Halo 2 Project Cartographer\movie\credits_60.wmv"
-File "C:\Games\Halo 2 Project Cartographer\movie\intro_60.wmv"
-File "C:\Games\Halo 2 Project Cartographer\movie\intro_low_60.wmv"
-SetOutPath "$INSTDIR\maps"
-#File "C:\Games\Halo 2 Project Cartographer\maps\lockout.map"
-#File "C:\Games\Halo 2 Project Cartographer\maps\mainmenu.map"
-#File "C:\Games\Halo 2 Project Cartographer\maps\mainmenu.zip"
-#File "C:\Games\Halo 2 Project Cartographer\maps\shared.map"
-SetOutPath "$INSTDIR\maps\fonts"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\arial-13"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\arial-14"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\cht_dft_r5_conduit-12"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\cht_dft_r5_conduit-13"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\cht_dft_r5_conduit-9"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\cht_dft_r5_h_g-11"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\cht_dft_r5_h_g-13"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\cht_dft_r5_h_g-24"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\cht_dft_r5_mslcd-14"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\cht_jhenghei_conduit-9"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\conduit-12"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\conduit-13"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\conduit-9"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\fixedsys-9"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\font_table.txt"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\font_table_cht.txt"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\font_table_jpn.txt"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\font_table_kor.txt"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\handel_gothic-11"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\handel_gothic-13"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\handel_gothic-14"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\handel_gothic-24"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\jpn_dfghsmgoth_anti_con-12"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\jpn_dfghsmgoth_anti_con-13"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\jpn_dfghsmgoth_anti_con-9"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\jpn_dfghsmgoth_anti_h_g-11"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\jpn_dfghsmgoth_anti_h_g-13"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\jpn_dfghsmgoth_anti_h_g-24"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\jpn_dfghsmgoth_anti_mslcd-14"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\kor_malgun_16_conduit-9"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\kor_sdgd_m_anti_conduit-12"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\kor_sdgd_m_anti_conduit-13"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\kor_sdgd_m_anti_conduit-9"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\kor_sdgd_m_anti_h_g-11"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\kor_sdgd_m_anti_h_g-13"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\kor_sdgd_m_anti_h_g-24"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\kor_sdgd_m_anti_mslcd-14"
-File "C:\Games\Halo 2 Project Cartographer\maps\fonts\mslcd-14"
-SetOutPath "$INSTDIR\icons"
-File "C:\Games\Halo 2 Project Cartographer\icons\doc_map.ico"
-File "C:\Games\Halo 2 Project Cartographer\icons\doc_savegame.ico"
+InitPluginsDir
+${PowerShellExec} "Unblock-File -Path $EXEDIR\h2pc_data.7z" ;unblock the 7z data file
 
-SetOutPath "$INSTDIR\Temp\vcredist"
-File "C:\Git\h2pc_installer\vcredist\vcredist_x86.exe"
+Pop $R1 
+DetailPrint $R1
+${If} $R1 != ""
+	MessageBox MB_OK|MB_ICONSTOP "h2pc_data file not present or blocked by Windows. Please go to file properties, unblock, then restart this setup"
+	DetailPrint "h2pc_data error"
+	Abort
+${EndIf}
+ 
+CreateDirectory $INSTDIR  ;Start extraction of game files
+SetOutPath $INSTDIR
+SetCompress off
+DetailPrint "Extracting package..."
+SetDetailsPrint listonly
+;File h2pc_data.7z
+SetCompress auto
+SetDetailsPrint both
+Nsis7z::ExtractWithDetails "$EXEDIR\h2pc_data.7z" "Unpacking games files to $INSTDIR  %s..."
+;Pop $0
+;DetailPrint $0
+;Abort
+;Pop $0
+;MessageBox MB_OK|MB_ICONSTOP "$0 $EXEDIR\files4.zip After install, manually extract the files from files4.zip to $DOCUMENTS\My Games\Halo 2\Maps"
 
-AddSize 4000000 ;add 4.0 gb to the installer record to account for the zip files
+; Section 4 - Custom Maps
+; CreateDirectory "$DOCUMENTS\My Games\Halo 2\Maps"
+; InitPluginsDir
+; Call plug-in. Push filename to ZIP first, and the dest. folder last.
+; DetailPrint "Extracting files4.zip, this may take a while (400MB)"
+; nsisunz::UnzipToLog "$EXEDIR\files4.zip" "$DOCUMENTS\My Games\Halo 2\Maps"
+; Always check result on stack
+; Pop $0
+; StrCmp $0 "success" ok4
+  ; DetailPrint "$0" ;print error message to log
+  ; MessageBox MB_OK|MB_ICONSTOP "$0 $EXEDIR\files4.zip After install, manually extract the files from files4.zip to $DOCUMENTS\My Games\Halo 2\Maps"
+; Abort
+; ok4: ;end map extract
+AddSize 4600000
+
 SectionEnd
 
 ;Sections for dependencies install
@@ -290,13 +166,13 @@ Section "DirectX Install"
  SectionIn RO
  
  DetailPrint "Running DirectX Setup..."
- ExecWait '"$INSTDIR\maps\directx.exe" /q /T:"$INSTDIR\Temp\Directx\"' 
+ ExecWait '"$INSTDIR\temp\directx.exe" /q /T:"$INSTDIR\temp\Directx\"' 
  ExecWait '"$INSTDIR\Temp\Directx\DXSETUP.exe" /silent' $DirectXSetupError
  ;IfErrors error_dx
  DetailPrint "Finished DirectX Setup"
  ;MessageBox MB_OK|MB_ICONSTOP "return code: $DirectXSetupError"
- Delete "$INSTDIR\maps\directx.exe"
- RMDir /r "$INSTDIR\Temp\Directx\"
+ Delete "$INSTDIR\temp\directx.exe"
+ RMDir /r "$INSTDIR\temp\Directx\"
  ;error_dx:
 ; Abort
 SectionEnd
@@ -304,14 +180,14 @@ SectionEnd
 Section "dotNET 4.5 Install" 
 
 DetailPrint "Running .NET 4.5 setup..."
-ExecWait '"$INSTDIR\maps\dotnetfx452.exe" /passive /norestart' $netSetupError
+ExecWait '"$INSTDIR\temp\dotnetfx452.exe" /passive /norestart' $netSetupError
 ${If} $netSetupError != "0"
 	MessageBox MB_OK|MB_ICONSTOP "Issue with .NET 4.5 install, you may encounter problems with the launcher."
 	DetailPrint ".NET 4.5 not installed"
 ${EndIf}
 DetailPrint "Finished .NET 4.5 setup. Return code: $netSetupError"
  ;MessageBox MB_OK|MB_ICONSTOP "return code: $netSetupError"
-Delete "$INSTDIR\maps\dotnetfx452.exe"
+Delete "$INSTDIR\temp\dotnetfx452.exe"
  ;error_dotnet:
  ;Abort
  ;Delete "$INSTDIR\Temp\vcredist\dotnetfx35.exe"
@@ -321,14 +197,14 @@ Section "visual c++ 2005"
  
  DetailPrint "Running visual c++ 2005 setup..."
  ;ExecWait '"$INSTDIR\Temp\vcredist\vcredist.msi /qn' $vcredistSetupError
- ExecWait '"$INSTDIR\Temp\vcredist\vcredist_x86.exe" /Q' $vcredistSetupError
+ ExecWait '"$INSTDIR\temp\vcredist\vcredist_x86.exe" /Q' $vcredistSetupError
  ;IfErrors error_vcredist
  DetailPrint "Finished visual c++ 2005 setup ... $vcredistSetupError"
  ;MessageBox MB_OK|MB_ICONSTOP "return code: $vcredistSetupError"
  ;ExecWait '"$INSTDIR\Temp\vcredist\vcredist.exe"'
- Delete "$INSTDIR\Temp\vcredist\vcredist_x86.exe"
- RMDir /r "$INSTDIR\Temp\vcredist"
- RMDir /r "$INSTDIR\Temp"
+ Delete "$INSTDIR\temp\vcredist\vcredist_x86.exe"
+ RMDir /r "$INSTDIR\temp\vcredist"
+ ;RMDir /r "$INSTDIR\temp"
  ;error_vcredist:
  ;Abort
  ;Delete "$INSTDIR\Temp\vcredist\vcredist_x86.exe"
@@ -388,8 +264,22 @@ ${Else}
   DetailPrint "x32" 
 ${EndIf}
 
+WriteRegStr HKEY_LOCAL_MACHINE "Software\Classes\.Halo2" "" "Halo2Type"
+WriteRegStr HKEY_LOCAL_MACHINE "Software\Classes\.Halo2\PersistentHandler" "" "{C7691FD1-BA80-4E56-9E91-6934EB3C2C67}"
+WriteRegStr HKEY_LOCAL_MACHINE "Software\Classes\.Halo2\ShellEx" "" ""
+WriteRegStr HKEY_LOCAL_MACHINE "Software\Classes\.Halo2\ShellEx\{BB2E617C-0920-11d1-9A0B-00C04FC2D6C1}" "" "{4E5BFBF8-F59A-4e87-9805-1F9B42CC254A}"
+WriteRegStr HKEY_LOCAL_MACHINE "Software\Classes\.map" "" "Halo2MapType"
+WriteRegStr HKEY_LOCAL_MACHINE "Software\Classes\Halo2MapType" "" ""
+WriteRegStr HKEY_LOCAL_MACHINE "Software\Classes\Halo2MapType\DefaultIcon" "" "$INSTDIR\icons\doc_map.ico"
+WriteRegStr HKEY_LOCAL_MACHINE "Software\Classes\Halo2Type" "PreviewTitle" "prop:System.Game.RichSaveName;System.Game.RichApplicationName"
+WriteRegStr HKEY_LOCAL_MACHINE "Software\Classes\Halo2Type" "PreviewDetails" "prop:System.Game.RichLevel;System.DateChanged;System.Game.RichComment;System.DisplayName;System.DisplayType"
+WriteRegStr HKEY_LOCAL_MACHINE "Software\Classes\Halo2Type\DefaultIcon" "" "$INSTDIR\icons\doc_savegame.ico"
+WriteRegStr HKEY_LOCAL_MACHINE "Software\Classes\Halo2Type\Shell" "" ""
+WriteRegStr HKEY_LOCAL_MACHINE "Software\Classes\Halo2Type\Shell\Open" "" ""
+WriteRegStr HKEY_LOCAL_MACHINE "Software\Classes\Halo2Type\Shell\Open\Command" "" "$INSTDIR\halo2.exe -save:\$\"%1\$\""
+
 ;Delete temp directory inside install folder
-RMDir /r "$INSTDIR\Temp"
+RMDir /r "$INSTDIR\temp"
 SectionEnd
 
 ;HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Microsoft Games\Halo 2
