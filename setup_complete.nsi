@@ -113,21 +113,32 @@ FunctionEnd
 ShowInstDetails show
 
 ######################################################################
+Function Callback
+Pop $R9
+${If} $R9 = "358"
+	DetailPrint "h2pc data file not found, please redownload or check your antivirus"
+${EndIf}
+FunctionEnd
 
 Section -MainProgram
 ${INSTALL_TYPE}
 SetOverwrite ifnewer
 InitPluginsDir
-${PowerShellExec} "Unblock-File -Path $EXEDIR\h2pc_data.7z" ;unblock the 7z data file
-
+${PowerShellExec} "Unblock-File -Path '$EXEDIR\h2pc_data.7z'" ;unblock the 7z data file
+;${PowerShellExec} "Remove-Item -Path '$EXEDIR\h2pc_data.7z' -Stream Zone.Identifier"
+;${PowerShellExec} "Get-ChildItem $EXEDIR *.7z | Foreach-Object { Remove-Item $_.Name -Stream Zone.Identifier -ErrorAction Ignore }"
 Pop $R1 
-DetailPrint $R1
+
 ${If} $R1 != ""
-	MessageBox MB_OK|MB_ICONSTOP "h2pc_data file not present or blocked by Windows. Please go to file properties, unblock, then restart this setup"
-	DetailPrint "h2pc_data error"
-	Abort
+	;MessageBox MB_OK|MB_ICONSTOP "h2pc_data file not present or blocked by Windows. Please go to file properties, unblock, then restart this setup"
+	;DetailPrint "unblocking h2pc_data error"
+	DetailPrint $R1
+	;DetailPrint "Attempting another method:"	
+	;Pop $R1
+	;DetailPrint $R1	
+	;Abort
 ${EndIf}
- 
+
 CreateDirectory $INSTDIR  ;Start extraction of game files
 SetOutPath $INSTDIR
 SetCompress off
@@ -136,9 +147,22 @@ SetDetailsPrint listonly
 ;File h2pc_data.7z
 SetCompress auto
 SetDetailsPrint both
-Nsis7z::ExtractWithDetails "$EXEDIR\h2pc_data.7z" "Unpacking games files to $INSTDIR  %s..."
-;Pop $0
-;DetailPrint $0
+;Nsis7z::ExtractWithDetails "$EXEDIR\h2pc_data.7z" "Unpacking games files to $INSTDIR  %s..."
+
+GetFunctionAddress $R9 Callback
+Nsis7z::ExtractWithCallback "$EXEDIR\h2pc_data.7z" $R9
+
+Pop $R9
+DetailPrint $R9
+${If} $R9 != "3786240"
+	MessageBox MB_OK|MB_ICONSTOP "h2pc_data.7z file not present or blocked by Windows. Please right click h2pc_data.7z, go to properties, click unblock, apply, then restart this setup"
+	DetailPrint "h2pc data extract error"
+	RMDir /r "$INSTDIR\"
+	Abort
+	;DetailPrint $R0
+	;Abort
+${EndIf}
+
 ;Abort
 ;Pop $0
 ;MessageBox MB_OK|MB_ICONSTOP "$0 $EXEDIR\files4.zip After install, manually extract the files from files4.zip to $DOCUMENTS\My Games\Halo 2\Maps"
@@ -157,7 +181,7 @@ Nsis7z::ExtractWithDetails "$EXEDIR\h2pc_data.7z" "Unpacking games files to $INS
 ; Abort
 ; ok4: ;end map extract
 AddSize 4600000
-
+;Abort
 SectionEnd
 
 ;Sections for dependencies install
@@ -182,7 +206,7 @@ Section "dotNET 4.5 Install"
 DetailPrint "Running .NET 4.5 setup..."
 ExecWait '"$INSTDIR\temp\dotnetfx452.exe" /passive /norestart' $netSetupError
 ${If} $netSetupError != "0"
-	MessageBox MB_OK|MB_ICONSTOP "Issue with .NET 4.5 install, you may encounter problems with the launcher."
+	MessageBox MB_OK|MB_ICONINFORMATION "Issue with .NET 4.5 install, you may encounter problems with the launcher."
 	DetailPrint ".NET 4.5 not installed"
 ${EndIf}
 DetailPrint "Finished .NET 4.5 setup. Return code: $netSetupError"
