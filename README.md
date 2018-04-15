@@ -18,3 +18,6 @@ create multiple shortcuts for the various target parameters
 start in windowed mode by default
 custom maps
 
+add link to cartographer feature list
+
+add commands.txt
