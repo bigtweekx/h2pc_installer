@@ -10,11 +10,11 @@ RequestExecutionLevel admin
 !define APP_NAME "Halo 2 Project Cartographer"
 !define COMP_NAME "H2PC"
 !define WEB_SITE "www.halo2.online"
-!define VERSION "01.5.00.00"
+!define VERSION "01.7.00.00"
 !define COPYRIGHT "H2PC"
 !define DESCRIPTION "H2PC Installer"
 !define INSTALLER_NAME "C:\Git\h2pc_installer\h2pc_setup.exe"
-!define MAIN_APP_EXE "H2Launcher.exe"
+!define MAIN_APP_EXE "halo2.exe"
 !define INSTALL_TYPE "SetShellVarContext current"
 !define REG_ROOT "HKCU"
 !define REG_APP_PATH "Software\Microsoft\Windows\CurrentVersion\App Paths\${MAIN_APP_EXE}"
@@ -59,9 +59,9 @@ InstallDir "C:\Games\Halo 2 Project Cartographer"
 !define MUI_UNABORTWARNING
 
 !define MUI_ICON "doc_map.ico"
-;!define MUI_HEADERIMAGE_BITMAP "logo.png"
+
 !insertmacro MUI_PAGE_WELCOME
-;!insertmacro MUI_PAGE_LICENSE "termsofservice.rtf"
+
 
 !define MUI_PAGE_CUSTOMFUNCTION_SHOW LicenseShow
 !insertmacro MUI_PAGE_LICENSE "termsofservice.rtf"
@@ -86,20 +86,15 @@ FunctionEnd
 
 !insertmacro MUI_PAGE_INSTFILES
 
-;!define MUI_FINISHPAGE_SHOWREADME "$instdir\readme.txt" ; Can also be a URL
-!define MUI_FINISHPAGE_LINK "Official Site for Project Cartographer"
-!define MUI_FINISHPAGE_LINK_LOCATION "http://www.h2v.online/"
+!define MUI_FINISHPAGE_LINK "Please visit our website to learn about Project Cartographer"
+!define MUI_FINISHPAGE_LINK_LOCATION "https://halo2.online/forums/current-news.11/"
 
-/* !define MUI_FINISHPAGE_SHOWREADME ""
-!define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
-!define MUI_FINISHPAGE_SHOWREADME_TEXT "Create Desktop Shortcut"
-!define MUI_FINISHPAGE_SHOWREADME_FUNCTION finishpageaction
- */
 
-!define MUI_FINISHPAGE_RUN "$INSTDIR\H2Launcher.exe"
-!define MUI_FINISHPAGE_RUN_TEXT "Start Launcher to login and play"
-;!define MUI_FINISHPAGE_RUN_TEXT "Run the launcher to login and play Halo 2? May take a while for window to appear, please be patient"
-!define MUI_FINISHPAGE_SHOWREADME_TEXT 
+!define MUI_FINISHPAGE_RUN "$INSTDIR\halo2.exe"
+!define MUI_FINISHPAGE_RUN_PARAMETERS "-windowed"  
+!define MUI_FINISHPAGE_RUN_TEXT "Run Halo 2 to login and play"
+;!define MUI_FINISHPAGE_SHOWREADME_TEXT 
+
 !insertmacro MUI_PAGE_FINISH
 
 !insertmacro MUI_UNPAGE_CONFIRM
@@ -124,64 +119,71 @@ Section -MainProgram
 ${INSTALL_TYPE}
 SetOverwrite ifnewer
 InitPluginsDir
-${PowerShellExec} "Unblock-File -Path '$EXEDIR\h2pc_data.7z'" ;unblock the 7z data file
-;${PowerShellExec} "Remove-Item -Path '$EXEDIR\h2pc_data.7z' -Stream Zone.Identifier"
-;${PowerShellExec} "Get-ChildItem $EXEDIR *.7z | Foreach-Object { Remove-Item $_.Name -Stream Zone.Identifier -ErrorAction Ignore }"
+${PowerShellExec} "Unblock-File -Path '$EXEDIR\h2pc_data.bin'" ;unblock the 7z data file
 Pop $R1 
-
 ${If} $R1 != ""
-	;MessageBox MB_OK|MB_ICONSTOP "h2pc_data file not present or blocked by Windows. Please go to file properties, unblock, then restart this setup"
-	;DetailPrint "unblocking h2pc_data error"
 	DetailPrint $R1
-	;DetailPrint "Attempting another method:"	
-	;Pop $R1
-	;DetailPrint $R1	
-	;Abort
 ${EndIf}
+
+DetailPrint "Checking data file integrity... Might take a while if you have a slow computer"
+CRCCheck::GenCRC "$EXEDIR\h2pc_data.bin"
+Pop $R1
+${If} $R1 != "97652258"
+	DetailPrint "$R1 "
+	MessageBox MB_OKCANCEL "Install failed: data file is corrupted.$\nPlease redownload with a different browser or use the torrent link.$\nPress OK to open the download page. Press cancel to close installer" IDOK download
+	Quit 
+	download: 
+		ExecShell "open" "http://www.h2pcmt.com/Cartographer/Installer/"
+	Quit
+${EndIf}
+DetailPrint "Data file OK"
 
 CreateDirectory $INSTDIR  ;Start extraction of game files
 SetOutPath $INSTDIR
 SetCompress off
-DetailPrint "Extracting package..."
+DetailPrint "Extracting game data ..."
 SetDetailsPrint listonly
-;File h2pc_data.7z
 SetCompress auto
 SetDetailsPrint both
-;Nsis7z::ExtractWithDetails "$EXEDIR\h2pc_data.7z" "Unpacking games files to $INSTDIR  %s..."
 
 GetFunctionAddress $R9 Callback
-Nsis7z::ExtractWithCallback "$EXEDIR\h2pc_data.7z" $R9
+Nsis7z::ExtractWithCallback "$EXEDIR\h2pc_data.bin" $R9
 
 Pop $R9
 DetailPrint $R9
-${If} $R9 != "3786240"
+
+${If} $R9 = "3786240"
+	Goto continue
+${Else}
+	Goto nextIf
+${EndIf}
+
+nextIf:
+${If} $R9 = "379825772"
+	Goto continue
+${Else}
 	MessageBox MB_OK|MB_ICONSTOP "h2pc_data.7z file not present or blocked by Windows. Please right click h2pc_data.7z, go to properties, click unblock, apply, then restart this setup"
 	DetailPrint "h2pc data extract error"
 	RMDir /r "$INSTDIR\"
 	Abort
-	;DetailPrint $R0
-	;Abort
 ${EndIf}
 
-;Abort
-;Pop $0
-;MessageBox MB_OK|MB_ICONSTOP "$0 $EXEDIR\files4.zip After install, manually extract the files from files4.zip to $DOCUMENTS\My Games\Halo 2\Maps"
-
-; Section 4 - Custom Maps
-; CreateDirectory "$DOCUMENTS\My Games\Halo 2\Maps"
-; InitPluginsDir
-; Call plug-in. Push filename to ZIP first, and the dest. folder last.
-; DetailPrint "Extracting files4.zip, this may take a while (400MB)"
-; nsisunz::UnzipToLog "$EXEDIR\files4.zip" "$DOCUMENTS\My Games\Halo 2\Maps"
-; Always check result on stack
-; Pop $0
-; StrCmp $0 "success" ok4
-  ; DetailPrint "$0" ;print error message to log
-  ; MessageBox MB_OK|MB_ICONSTOP "$0 $EXEDIR\files4.zip After install, manually extract the files from files4.zip to $DOCUMENTS\My Games\Halo 2\Maps"
-; Abort
-; ok4: ;end map extract
+continue:
 AddSize 4600000
 ;Abort
+SectionEnd
+
+Section "xlive.dll update"
+
+inetc::get "https://cartographer.online/latest/xlive.dll" "$EXEDIR\xlive.dll" /end            
+Pop $0
+${If} $0 == "OK"
+	DetailPrint "Download OK, installing $EXEDIR\xlive.dll to $INSTDIR"
+	CopyFiles "$EXEDIR\xlive.dll" $INSTDIR
+${Else}
+	DetailPrint "xlive.dll download error, using built in dll"
+${EndIf}
+Delete "$EXEDIR\xlive.dll"
 SectionEnd
 
 ;Sections for dependencies install
@@ -192,13 +194,10 @@ Section "DirectX Install"
  DetailPrint "Running DirectX Setup..."
  ExecWait '"$INSTDIR\temp\directx.exe" /q /T:"$INSTDIR\temp\Directx\"' 
  ExecWait '"$INSTDIR\Temp\Directx\DXSETUP.exe" /silent' $DirectXSetupError
- ;IfErrors error_dx
  DetailPrint "Finished DirectX Setup"
- ;MessageBox MB_OK|MB_ICONSTOP "return code: $DirectXSetupError"
  Delete "$INSTDIR\temp\directx.exe"
  RMDir /r "$INSTDIR\temp\Directx\"
- ;error_dx:
-; Abort
+
 SectionEnd
 
 Section "dotNET 4.5 Install" 
@@ -206,32 +205,34 @@ Section "dotNET 4.5 Install"
 DetailPrint "Running .NET 4.5 setup..."
 ExecWait '"$INSTDIR\temp\dotnetfx452.exe" /passive /norestart' $netSetupError
 ${If} $netSetupError != "0"
-	MessageBox MB_OK|MB_ICONINFORMATION "Issue with .NET 4.5 install, you may encounter problems with the launcher."
 	DetailPrint ".NET 4.5 not installed"
 ${EndIf}
 DetailPrint "Finished .NET 4.5 setup. Return code: $netSetupError"
- ;MessageBox MB_OK|MB_ICONSTOP "return code: $netSetupError"
 Delete "$INSTDIR\temp\dotnetfx452.exe"
- ;error_dotnet:
- ;Abort
- ;Delete "$INSTDIR\Temp\vcredist\dotnetfx35.exe"
+
 SectionEnd
 
-Section "visual c++ 2005"
+Section "Visual c++ 2013"
  
- DetailPrint "Running visual c++ 2005 setup..."
- ;ExecWait '"$INSTDIR\Temp\vcredist\vcredist.msi /qn' $vcredistSetupError
- ExecWait '"$INSTDIR\temp\vcredist\vcredist_x86.exe" /Q' $vcredistSetupError
- ;IfErrors error_vcredist
- DetailPrint "Finished visual c++ 2005 setup ... $vcredistSetupError"
- ;MessageBox MB_OK|MB_ICONSTOP "return code: $vcredistSetupError"
- ;ExecWait '"$INSTDIR\Temp\vcredist\vcredist.exe"'
- Delete "$INSTDIR\temp\vcredist\vcredist_x86.exe"
- RMDir /r "$INSTDIR\temp\vcredist"
- ;RMDir /r "$INSTDIR\temp"
- ;error_vcredist:
- ;Abort
- ;Delete "$INSTDIR\Temp\vcredist\vcredist_x86.exe"
+ DetailPrint "Running Visual C++ 2013 setup..."
+ DetailPrint "Installer may appear stuck, please wait for setup to continue"
+ ExecWait '"$INSTDIR\temp\vcredist_2013_x86.exe" /q /norestart' $R1
+ DetailPrint "Finished visual C++ 2013 setup ... "
+ ${If} $R1 = "0" 
+	DetailPrint "$R1"
+		
+${ElseIf} $R1 = "3010"
+	DetailPrint "$R1"
+	
+${Else}
+	DetailPrint "Visual C++ Error $R1"
+	MessageBox MB_OK|MB_ICONSTOP "Error with Visual C++ 2013 install. You may encounter issues when running the game.Please download and install manually, then run the game. Press OK to finish setup"
+	
+${EndIf}
+ ;MessageBox MB_OK|MB_ICONSTOP "return code: $R1"
+ Delete "$INSTDIR\temp\vcredist_2013_x86.exe"
+ RMDir /r "$INSTDIR\temp"
+
 SectionEnd
 
 ######################################################################
@@ -243,8 +244,11 @@ WriteUninstaller "$INSTDIR\uninstall.exe"
 !ifdef REG_START_MENU
 !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
 CreateDirectory "$SMPROGRAMS\$SM_Folder"
-CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}"
-CreateShortCut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}"
+CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME} (Windowed).lnk" "$INSTDIR\halo2.exe" "-windowed"
+CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME} (No Vsync).lnk" "$INSTDIR\halo2.exe" "-novsync"
+CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME} (No Sound).lnk" "$INSTDIR\halo2.exe" "-nosound"
+CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME}.lnk" "$INSTDIR\halo2.exe"
+CreateShortCut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\halo2.exe" "-windowed"
 CreateShortCut "$SMPROGRAMS\$SM_Folder\Uninstall ${APP_NAME}.lnk" "$INSTDIR\uninstall.exe"
 
 !ifdef WEB_SITE
@@ -254,17 +258,38 @@ CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME} Website.lnk" "$INSTDIR\${APP_
 !insertmacro MUI_STARTMENU_WRITE_END
 !endif
 
-!ifndef REG_START_MENU
-CreateDirectory "$SMPROGRAMS\Halo 2 Project Cartographer"
-CreateShortCut "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}"
-CreateShortCut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}"
-CreateShortCut "$SMPROGRAMS\Halo 2 Project Cartographer\Uninstall ${APP_NAME}.lnk" "$INSTDIR\uninstall.exe"
+; !ifdef REG_START_MENU
+; !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
+; CreateDirectory "$SMPROGRAMS\$SM_Folder"
+; CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME}(windowed).lnk" "$INSTDIR\${MAIN_APP_EXE}" "-windowed"
+; CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME}(no vsync).lnk" "$INSTDIR\${MAIN_APP_EXE}" "-novsync"
+; CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME}(no sound).lnk" "$INSTDIR\${MAIN_APP_EXE}" "-nosound"
+; CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}" 
+; CreateShortCut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}" "-windowed"
+; CreateShortCut "$SMPROGRAMS\$SM_Folder\Uninstall ${APP_NAME}.lnk" "$INSTDIR\uninstall.exe"
 
-!ifdef WEB_SITE
-WriteIniStr "$INSTDIR\${APP_NAME} website.url" "InternetShortcut" "URL" "${WEB_SITE}"
-CreateShortCut "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME} Website.lnk" "$INSTDIR\${APP_NAME} website.url"
-!endif
-!endif
+; !ifdef WEB_SITE
+; WriteIniStr "$INSTDIR\${APP_NAME} website.url" "InternetShortcut" "URL" "${WEB_SITE}"
+; CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME} Website.lnk" "$INSTDIR\${APP_NAME} website.url"
+; !endif
+; !insertmacro MUI_STARTMENU_WRITE_END
+; !endif
+
+; !ifndef REG_START_MENU
+; CreateDirectory "$SMPROGRAMS\Halo 2 Project Cartographer"
+; CreateShortCut "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME}(Windowed).lnk" "$INSTDIR\${MAIN_APP_EXE}" "-windowed"
+; CreateShortCut "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME}(No Vsync).lnk" "$INSTDIR\${MAIN_APP_EXE}" "-novsync"
+; CreateShortCut "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME}(No Sound).lnk" "$INSTDIR\${MAIN_APP_EXE}" "-nosound"
+; CreateShortCut "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}"
+; CreateShortCut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}" "-windowed"
+; CreateShortCut "$SMPROGRAMS\Halo 2 Project Cartographer\Uninstall ${APP_NAME}.lnk" "$INSTDIR\uninstall.exe"
+
+; !ifdef WEB_SITE
+; WriteIniStr "$INSTDIR\${APP_NAME} website.url" "InternetShortcut" "URL" "${WEB_SITE}"
+; CreateShortCut "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME} Website.lnk" "$INSTDIR\${APP_NAME} website.url"
+; !endif
+; !insertmacro MUI_STARTMENU_WRITE_END
+; !endif
 
 WriteRegStr ${REG_ROOT} "${REG_APP_PATH}" "" "$INSTDIR\${MAIN_APP_EXE}"
 WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "DisplayName" "${APP_NAME}"
@@ -429,6 +454,9 @@ RmDir /r "$INSTDIR"
 !ifdef REG_START_MENU
 !insertmacro MUI_STARTMENU_GETFOLDER "Application" $SM_Folder
 Delete "$SMPROGRAMS\$SM_Folder\${APP_NAME}.lnk"
+Delete "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME}(Windowed).lnk" 
+Delete "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME}(No Vsync).lnk" 
+Delete "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME}(No Sound).lnk"
 Delete "$SMPROGRAMS\$SM_Folder\Uninstall ${APP_NAME}.lnk"
 !ifdef WEB_SITE
 Delete "$SMPROGRAMS\$SM_Folder\${APP_NAME} Website.lnk"
@@ -440,6 +468,9 @@ RmDir "$SMPROGRAMS\$SM_Folder"
 
 !ifndef REG_START_MENU
 Delete "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME}.lnk"
+Delete "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME}(Windowed).lnk" 
+Delete "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME}(No Vsync).lnk" 
+Delete "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME}(No Sound).lnk"
 Delete "$SMPROGRAMS\Halo 2 Project Cartographer\Uninstall ${APP_NAME}.lnk"
 !ifdef WEB_SITE
 Delete "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME} Website.lnk"
