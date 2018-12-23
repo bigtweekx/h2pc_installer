@@ -133,7 +133,7 @@ ${If} $R1 != "97652258"
 	MessageBox MB_OKCANCEL "Install failed: data file is corrupted.$\nPlease redownload with a different browser or use the torrent link.$\nPress OK to open the download page. Press cancel to close installer" IDOK download
 	Quit 
 	download: 
-		ExecShell "open" "http://www.h2pcmt.com/Cartographer/Installer/"
+		ExecShell "open" "http://www.h2maps.net/Cartographer/Installer/"
 	Quit
 ${EndIf}
 DetailPrint "Data file OK"
@@ -248,7 +248,7 @@ CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME} (Windowed).lnk" "$INSTDIR\hal
 CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME} (No Vsync).lnk" "$INSTDIR\halo2.exe" "-novsync"
 CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME} (No Sound).lnk" "$INSTDIR\halo2.exe" "-nosound"
 CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME}.lnk" "$INSTDIR\halo2.exe"
-CreateShortCut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\halo2.exe" "-windowed"
+CreateShortCut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\halo2.exe" 
 CreateShortCut "$SMPROGRAMS\$SM_Folder\Uninstall ${APP_NAME}.lnk" "$INSTDIR\uninstall.exe"
 
 !ifdef WEB_SITE
@@ -257,39 +257,6 @@ CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME} Website.lnk" "$INSTDIR\${APP_
 !endif
 !insertmacro MUI_STARTMENU_WRITE_END
 !endif
-
-; !ifdef REG_START_MENU
-; !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
-; CreateDirectory "$SMPROGRAMS\$SM_Folder"
-; CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME}(windowed).lnk" "$INSTDIR\${MAIN_APP_EXE}" "-windowed"
-; CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME}(no vsync).lnk" "$INSTDIR\${MAIN_APP_EXE}" "-novsync"
-; CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME}(no sound).lnk" "$INSTDIR\${MAIN_APP_EXE}" "-nosound"
-; CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}" 
-; CreateShortCut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}" "-windowed"
-; CreateShortCut "$SMPROGRAMS\$SM_Folder\Uninstall ${APP_NAME}.lnk" "$INSTDIR\uninstall.exe"
-
-; !ifdef WEB_SITE
-; WriteIniStr "$INSTDIR\${APP_NAME} website.url" "InternetShortcut" "URL" "${WEB_SITE}"
-; CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME} Website.lnk" "$INSTDIR\${APP_NAME} website.url"
-; !endif
-; !insertmacro MUI_STARTMENU_WRITE_END
-; !endif
-
-; !ifndef REG_START_MENU
-; CreateDirectory "$SMPROGRAMS\Halo 2 Project Cartographer"
-; CreateShortCut "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME}(Windowed).lnk" "$INSTDIR\${MAIN_APP_EXE}" "-windowed"
-; CreateShortCut "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME}(No Vsync).lnk" "$INSTDIR\${MAIN_APP_EXE}" "-novsync"
-; CreateShortCut "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME}(No Sound).lnk" "$INSTDIR\${MAIN_APP_EXE}" "-nosound"
-; CreateShortCut "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}"
-; CreateShortCut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}" "-windowed"
-; CreateShortCut "$SMPROGRAMS\Halo 2 Project Cartographer\Uninstall ${APP_NAME}.lnk" "$INSTDIR\uninstall.exe"
-
-; !ifdef WEB_SITE
-; WriteIniStr "$INSTDIR\${APP_NAME} website.url" "InternetShortcut" "URL" "${WEB_SITE}"
-; CreateShortCut "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME} Website.lnk" "$INSTDIR\${APP_NAME} website.url"
-; !endif
-; !insertmacro MUI_STARTMENU_WRITE_END
-; !endif
 
 WriteRegStr ${REG_ROOT} "${REG_APP_PATH}" "" "$INSTDIR\${MAIN_APP_EXE}"
 WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "DisplayName" "${APP_NAME}"
@@ -326,6 +293,8 @@ WriteRegStr HKEY_LOCAL_MACHINE "Software\Classes\Halo2Type\DefaultIcon" "" "$INS
 WriteRegStr HKEY_LOCAL_MACHINE "Software\Classes\Halo2Type\Shell" "" ""
 WriteRegStr HKEY_LOCAL_MACHINE "Software\Classes\Halo2Type\Shell\Open" "" ""
 WriteRegStr HKEY_LOCAL_MACHINE "Software\Classes\Halo2Type\Shell\Open\Command" "" "$INSTDIR\halo2.exe -save:\$\"%1\$\""
+
+WriteRegStr HKEY_CURRENT_USER "SOFTWARE\Microsoft\Halo 2\Video Settings" DisplayMode "1"
 
 ;Delete temp directory inside install folder
 RMDir /r "$INSTDIR\temp"
