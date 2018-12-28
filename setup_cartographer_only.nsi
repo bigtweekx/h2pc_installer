@@ -3,7 +3,7 @@ RequestExecutionLevel admin
 !define APP_NAME "Halo 2 Project Cartographer"
 !define COMP_NAME "H2PC"
 !define WEB_SITE "https://cartographer.online"
-!define VERSION "01.02.00.00"
+!define VERSION "01.05.00.00"
 !define COPYRIGHT "H2PC  © 2018"
 !define DESCRIPTION "H2PC Project Cartographer installer for systems with Halo 2 installed"
 !define INSTALLER_NAME "C:\Git\h2pc_installer\cartographer_installer.exe"
@@ -48,7 +48,7 @@ Function WelcomePageSetupLinkPre
   !insertmacro MUI_INSTALLOPTIONS_WRITE "ioSpecial.ini" "Field 3" "Bottom" "122" ; limit size of the upper label
   !insertmacro MUI_INSTALLOPTIONS_WRITE "ioSpecial.ini" "Field 4" "Type" "Link"
   !insertmacro MUI_INSTALLOPTIONS_WRITE "ioSpecial.ini" "Field 4" "Text" "Link to h2pc installer"
-  !insertmacro MUI_INSTALLOPTIONS_WRITE "ioSpecial.ini" "Field 4" "State" "http://www.h2pcmt.com/Cartographer/Installer/"
+  !insertmacro MUI_INSTALLOPTIONS_WRITE "ioSpecial.ini" "Field 4" "State" "http://www.h2maps.net/Cartographer/Installer/"
   !insertmacro MUI_INSTALLOPTIONS_WRITE "ioSpecial.ini" "Field 4" "Left" "120"
   !insertmacro MUI_INSTALLOPTIONS_WRITE "ioSpecial.ini" "Field 4" "Right" "315"
   !insertmacro MUI_INSTALLOPTIONS_WRITE "ioSpecial.ini" "Field 4" "Top" "123"
@@ -125,7 +125,7 @@ ${If} $INSTDIR == ""
   StrCpy $INSTDIR "C:\Program Files (x86)\Microsoft Games\Halo 2\"
   Goto next
   no:
-  ExecShell "open" "http://www.h2pcmt.com/Cartographer/Installer/"
+  ExecShell "open" "http://www.h2maps.net/Cartographer/Installer/"
   Quit
   next:
 ${Else}
@@ -228,22 +228,41 @@ SetOutPath "$INSTDIR"
 ;Abort
 File "C:\Git\h2pc_installer\cartographer_manual_update\commands.txt"
 File "C:\Git\h2pc_installer\cartographer_manual_update\gungame.ini"
+File "C:\Git\h2pc_installer\cartographer_manual_update\h2customlanguage.ini"
+File "C:\Git\h2pc_installer\cartographer_manual_update\halo2.VisualElementsManifest.xml"
 File "C:\Git\h2pc_installer\cartographer_manual_update\libcrypto-1_1.dll"
 File "C:\Git\h2pc_installer\cartographer_manual_update\libssl-1_1.dll"
 File "C:\Git\h2pc_installer\cartographer_manual_update\MF.dll"
+;File "C:\Git\h2pc_installer\cartographer_manual_update\msvcr120.dll"
 File "C:\Git\h2pc_installer\cartographer_manual_update\README.txt"
+File "C:\Git\h2pc_installer\cartographer_manual_update\startup.VisualElementsManifest.xml"
+File "C:\Git\h2pc_installer\cartographer_manual_update\ts3client_win32.dll"
+File "C:\Git\h2pc_installer\cartographer_manual_update\ts3server.dll"
+File "C:\Git\h2pc_installer\cartographer_manual_update\ts3server_win32.dll"
+File "C:\Git\h2pc_installer\cartographer_manual_update\ts3client.dll"
 File "C:\Git\h2pc_installer\cartographer_manual_update\xinput9_1_0.dll"
-;File "C:\Git\h2pc_installer\cartographer_manual_update\xlive.dll"
+
 SetOutPath "$INSTDIR\sounds"
 File "C:\Git\h2pc_installer\cartographer_manual_update\sounds\AchievementUnlocked.wav"
+File "C:\Git\h2pc_installer\cartographer_manual_update\sounds\grunt_birthday_party.wav"
 File "C:\Git\h2pc_installer\cartographer_manual_update\sounds\h2pc_logo.png"
+File "C:\Git\h2pc_installer\cartographer_manual_update\sounds\Halo1PCHitSound.wav"
+File "C:\Git\h2pc_installer\cartographer_manual_update\sounds\headhunter.wav"
+File "C:\Git\h2pc_installer\cartographer_manual_update\sounds\skull_scored.wav"
+File "C:\Git\h2pc_installer\cartographer_manual_update\sounds\smb3_powerup.wav"
 File "C:\Git\h2pc_installer\cartographer_manual_update\sounds\infected.wav"
 File "C:\Git\h2pc_installer\cartographer_manual_update\sounds\infection.wav"
 File "C:\Git\h2pc_installer\cartographer_manual_update\sounds\last_man_standing.wav"
 File "C:\Git\h2pc_installer\cartographer_manual_update\sounds\new_zombie.wav"
+
+SetOutPath "$INSTDIR\soundbackends"
+File "C:\Git\h2pc_installer\cartographer_manual_update\soundbackends\directsound_win32.dll"
+File "C:\Git\h2pc_installer\cartographer_manual_update\soundbackends\windowsaudiosession_win32.dll"
+
 SetOutPath "$INSTDIR\temp"
 File "C:\Git\h2pc_installer\cartographer_manual_update\Update.exe"
 File "C:\Git\h2pc_installer\cartographer_manual_update\vcredist_2013_x86.exe"
+
 
 
 inetc::get "https://cartographer.online/latest/xlive.dll" "$EXEDIR\xlive.dll" /end            
@@ -293,11 +312,12 @@ ${ElseIf} $R1 = "3010"
 	
 ${Else}
 	DetailPrint "Visual C++ Error $R1"
-	MessageBox MB_OK|MB_ICONSTOP "Error with Visual C++ 2013 install. You may encounter issues when running the game.Please download and install manually, then run the game. Press OK to finish setup"
+	MessageBox MB_OK|MB_ICONSTOP "Error with Visual C++ 2013 install. You may encounter issues when running the game. Please download and install manually, then run the game. Press OK to finish setup"
 	
 ${EndIf}
  ;MessageBox MB_OK|MB_ICONSTOP "return code: $R1"
  Delete "$INSTDIR\temp\vcredist_2013_x86.exe"
+ Delete "$INSTDIR\temp\Update.exe"
  RMDir /r "$INSTDIR\temp"
 
 SectionEnd
@@ -314,6 +334,7 @@ CreateDirectory "$SMPROGRAMS\$SM_Folder"
 CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME} (Windowed).lnk" "$INSTDIR\halo2.exe" "-windowed"
 CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME} (No Vsync).lnk" "$INSTDIR\halo2.exe" "-novsync"
 CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME} (No Sound).lnk" "$INSTDIR\halo2.exe" "-nosound"
+CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME} (HiRes fix).lnk" "$INSTDIR\halo2.exe" "-hiresfix"
 CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME}.lnk" "$INSTDIR\halo2.exe"
 CreateShortCut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\halo2.exe" "-windowed"
 CreateShortCut "$SMPROGRAMS\$SM_Folder\Uninstall ${APP_NAME}.lnk" "$INSTDIR\uninstall_cartographer.exe"
@@ -349,12 +370,31 @@ Delete "$INSTDIR\README.txt"
 Delete "$INSTDIR\Update.exe"
 Delete "$INSTDIR\xinput9_1_0.dll"
 Delete "$INSTDIR\xlive.dll"
+
+Delete "$INSTDIR\h2customlanguage.ini"
+Delete "$INSTDIR\halo2.VisualElementsManifest.xml"
+Delete "$INSTDIR\startup.VisualElementsManifest.xml"
+Delete "$INSTDIR\ts3client_win32.dll"
+Delete "$INSTDIR\ts3server.dll"
+Delete "$INSTDIR\ts3server_win32.dll"
+Delete "$INSTDIR\ts3client.dll"
+
 Delete "$INSTDIR\sounds\AchievementUnlocked.wav"
 Delete "$INSTDIR\sounds\h2pc_logo.png"
 Delete "$INSTDIR\sounds\infected.wav"
 Delete "$INSTDIR\sounds\infection.wav"
 Delete "$INSTDIR\sounds\last_man_standing.wav"
 Delete "$INSTDIR\sounds\new_zombie.wav"
+
+Delete "$INSTDIR\sounds\grunt_birthday_party.wav"
+Delete "$INSTDIR\sounds\Halo1PCHitSound.wav"
+Delete "$INSTDIR\sounds\headhunter.wav"
+Delete "$INSTDIR\sounds\skull_scored.wav"
+Delete "$INSTDIR\sounds\smb3_powerup.wav"
+Delete "$INSTDIR\sounds\infected.wav"
+
+Delete "$INSTDIR\soundbackends\directsound_win32.dll"
+Delete "$INSTDIR\soundbackends\windowsaudiosession_win32.dll"
  
 RmDir "$INSTDIR\sounds"
  
@@ -372,6 +412,7 @@ Delete "$SMPROGRAMS\$SM_Folder\Uninstall ${APP_NAME}.lnk"
 Delete "$SMPROGRAMS\$SM_Folder\${APP_NAME} (Windowed).lnk"
 Delete "$SMPROGRAMS\$SM_Folder\${APP_NAME} (No Vsync).lnk"
 Delete "$SMPROGRAMS\$SM_Folder\${APP_NAME} (No Sound).lnk"
+Delete "$SMPROGRAMS\$SM_Folder\${APP_NAME} (HiRes fix).lnk"
 !ifdef WEB_SITE
 Delete "$SMPROGRAMS\$SM_Folder\${APP_NAME} Website.lnk"
 !endif
@@ -385,6 +426,7 @@ Delete "$SMPROGRAMS\$SM_Folder\${APP_NAME}.lnk"
 Delete "$SMPROGRAMS\$SM_Folder\${APP_NAME} (Windowed).lnk"
 Delete "$SMPROGRAMS\$SM_Folder\${APP_NAME} (No Vsync).lnk"
 Delete "$SMPROGRAMS\$SM_Folder\${APP_NAME} (No Sound).lnk"
+Delete "$SMPROGRAMS\$SM_Folder\${APP_NAME} (HiRes fix).lnk"
 Delete "$SMPROGRAMS\$SM_Folder\Uninstall ${APP_NAME}.lnk"
 !ifdef WEB_SITE
 Delete "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME} Website.lnk"
@@ -399,8 +441,6 @@ DeleteRegKey ${REG_ROOT} "${UNINSTALL_PATH}"
 
 
 SectionEnd
-
-
 
 ######################################################################
 

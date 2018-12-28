@@ -10,7 +10,7 @@ RequestExecutionLevel admin
 !define APP_NAME "Halo 2 Project Cartographer"
 !define COMP_NAME "H2PC"
 !define WEB_SITE "www.halo2.online"
-!define VERSION "01.7.00.00"
+!define VERSION "01.8.00.00"
 !define COPYRIGHT "H2PC"
 !define DESCRIPTION "H2PC Installer"
 !define INSTALLER_NAME "C:\Git\h2pc_installer\h2pc_setup.exe"
@@ -119,7 +119,7 @@ Section -MainProgram
 ${INSTALL_TYPE}
 SetOverwrite ifnewer
 InitPluginsDir
-${PowerShellExec} "Unblock-File -Path '$EXEDIR\h2pc_data.bin'" ;unblock the 7z data file
+${PowerShellExec} "Unblock-File -Path '$EXEDIR\h2pc_data.bin'" ;unblock the data file
 Pop $R1 
 ${If} $R1 != ""
 	DetailPrint $R1
@@ -128,7 +128,7 @@ ${EndIf}
 DetailPrint "Checking data file integrity... Might take a while if you have a slow computer"
 CRCCheck::GenCRC "$EXEDIR\h2pc_data.bin"
 Pop $R1
-${If} $R1 != "97652258"
+${If} $R1 != "3828064033"
 	DetailPrint "$R1 "
 	MessageBox MB_OKCANCEL "Install failed: data file is corrupted.$\nPlease redownload with a different browser or use the torrent link.$\nPress OK to open the download page. Press cancel to close installer" IDOK download
 	Quit 
@@ -151,24 +151,24 @@ Nsis7z::ExtractWithCallback "$EXEDIR\h2pc_data.bin" $R9
 
 Pop $R9
 DetailPrint $R9
+;Abort
+; ${If} $R9 = "3786240"
+	; Goto continue
+; ${Else}
+	; Goto nextIf
+; ${EndIf}
 
-${If} $R9 = "3786240"
-	Goto continue
-${Else}
-	Goto nextIf
-${EndIf}
+; nextIf:
+; ${If} $R9 = "379825772"
+	; Goto continue
+; ${Else}
+	; MessageBox MB_OK|MB_ICONSTOP "h2pc_data.7z file not present or blocked by Windows. Please right click h2pc_data.7z, go to properties, click unblock, apply, then restart this setup"
+	; DetailPrint "h2pc data extract error"
+	; RMDir /r "$INSTDIR\"
+	; Abort
+; ${EndIf}
 
-nextIf:
-${If} $R9 = "379825772"
-	Goto continue
-${Else}
-	MessageBox MB_OK|MB_ICONSTOP "h2pc_data.7z file not present or blocked by Windows. Please right click h2pc_data.7z, go to properties, click unblock, apply, then restart this setup"
-	DetailPrint "h2pc data extract error"
-	RMDir /r "$INSTDIR\"
-	Abort
-${EndIf}
-
-continue:
+; continue:
 AddSize 4600000
 ;Abort
 SectionEnd
@@ -247,6 +247,7 @@ CreateDirectory "$SMPROGRAMS\$SM_Folder"
 CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME} (Windowed).lnk" "$INSTDIR\halo2.exe" "-windowed"
 CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME} (No Vsync).lnk" "$INSTDIR\halo2.exe" "-novsync"
 CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME} (No Sound).lnk" "$INSTDIR\halo2.exe" "-nosound"
+CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME} (HiRes fix).lnk" "$INSTDIR\halo2.exe" "-hiresfix"
 CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME}.lnk" "$INSTDIR\halo2.exe"
 CreateShortCut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\halo2.exe" 
 CreateShortCut "$SMPROGRAMS\$SM_Folder\Uninstall ${APP_NAME}.lnk" "$INSTDIR\uninstall.exe"
@@ -401,6 +402,20 @@ Delete "$INSTDIR\maps\fonts\kor_sdgd_m_anti_mslcd-14"
 Delete "$INSTDIR\maps\fonts\mslcd-14"
 Delete "$INSTDIR\icons\doc_map.ico"
 Delete "$INSTDIR\icons\doc_savegame.ico"
+
+
+Delete "$INSTDIR\sounds\AchievementUnlocked.wav"
+Delete "$INSTDIR\sounds\h2pc_logo.png"
+
+Delete "$INSTDIR\sounds\grunt_birthday_party.wav"
+Delete "$INSTDIR\sounds\Halo1PCHitSound.wav"
+Delete "$INSTDIR\sounds\headhunter.wav"
+Delete "$INSTDIR\sounds\skull_scored.wav"
+Delete "$INSTDIR\sounds\smb3_powerup.wav"
+Delete "$INSTDIR\sounds\infected.wav"
+
+Delete "$INSTDIR\soundbackends\directsound_win32.dll"
+Delete "$INSTDIR\soundbackends\windowsaudiosession_win32.dll"
  
 RmDir "$INSTDIR\icons"
 RmDir "$INSTDIR\maps\fonts"
@@ -423,9 +438,10 @@ RmDir /r "$INSTDIR"
 !ifdef REG_START_MENU
 !insertmacro MUI_STARTMENU_GETFOLDER "Application" $SM_Folder
 Delete "$SMPROGRAMS\$SM_Folder\${APP_NAME}.lnk"
-Delete "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME}(Windowed).lnk" 
-Delete "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME}(No Vsync).lnk" 
-Delete "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME}(No Sound).lnk"
+Delete "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME} (Windowed).lnk" 
+Delete "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME} (No Vsync).lnk" 
+Delete "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME} (No Sound).lnk"
+Delete "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME} (HiRes fix).lnk" 
 Delete "$SMPROGRAMS\$SM_Folder\Uninstall ${APP_NAME}.lnk"
 !ifdef WEB_SITE
 Delete "$SMPROGRAMS\$SM_Folder\${APP_NAME} Website.lnk"
@@ -437,9 +453,10 @@ RmDir "$SMPROGRAMS\$SM_Folder"
 
 !ifndef REG_START_MENU
 Delete "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME}.lnk"
-Delete "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME}(Windowed).lnk" 
-Delete "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME}(No Vsync).lnk" 
-Delete "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME}(No Sound).lnk"
+Delete "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME} (Windowed).lnk" 
+Delete "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME} (No Vsync).lnk" 
+Delete "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME} (No Sound).lnk"
+Delete "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME} (HiRes fix).lnk" 
 Delete "$SMPROGRAMS\Halo 2 Project Cartographer\Uninstall ${APP_NAME}.lnk"
 !ifdef WEB_SITE
 Delete "$SMPROGRAMS\Halo 2 Project Cartographer\${APP_NAME} Website.lnk"
