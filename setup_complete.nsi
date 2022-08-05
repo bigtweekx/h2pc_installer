@@ -10,7 +10,7 @@ RequestExecutionLevel admin
 !define APP_NAME "Halo 2 Project Cartographer"
 !define COMP_NAME "H2PC"
 !define WEB_SITE "www.halo2.online"
-!define VERSION "02.1.00.00"
+!define VERSION "02.0.00.00"
 !define COPYRIGHT "H2PC"
 !define DESCRIPTION "H2PC Installer"
 !define INSTALLER_NAME "C:\Git\h2pc_installer\h2pc_setup.exe"
@@ -128,7 +128,7 @@ ${EndIf}
 DetailPrint "Checking data file integrity... Might take a while if you have a slow computer"
 CRCCheck::GenCRC "$EXEDIR\h2pc_data.bin"
 Pop $R1
-${If} $R1 != "3982859078"
+${If} $R1 != "3904754213"
 	DetailPrint "$R1 "
 	MessageBox MB_OKCANCEL "Install failed: data file is corrupted.$\nPlease redownload with a different browser or use the torrent link.$\nPress OK to open the download page. Press cancel to close installer" IDOK download
 	Quit 
