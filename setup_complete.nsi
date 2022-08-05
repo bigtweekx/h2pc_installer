@@ -10,7 +10,7 @@ RequestExecutionLevel admin
 !define APP_NAME "Halo 2 Project Cartographer"
 !define COMP_NAME "H2PC"
 !define WEB_SITE "www.halo2.online"
-!define VERSION "01.8.00.00"
+!define VERSION "02.1.00.00"
 !define COPYRIGHT "H2PC"
 !define DESCRIPTION "H2PC Installer"
 !define INSTALLER_NAME "C:\Git\h2pc_installer\h2pc_setup.exe"
@@ -128,7 +128,7 @@ ${EndIf}
 DetailPrint "Checking data file integrity... Might take a while if you have a slow computer"
 CRCCheck::GenCRC "$EXEDIR\h2pc_data.bin"
 Pop $R1
-${If} $R1 != "3828064033"
+${If} $R1 != "3982859078"
 	DetailPrint "$R1 "
 	MessageBox MB_OKCANCEL "Install failed: data file is corrupted.$\nPlease redownload with a different browser or use the torrent link.$\nPress OK to open the download page. Press cancel to close installer" IDOK download
 	Quit 
@@ -169,21 +169,21 @@ DetailPrint $R9
 ; ${EndIf}
 
 ; continue:
-AddSize 4600000
+AddSize 4800000
 ;Abort
 SectionEnd
 
 Section "xlive.dll update"
 
-inetc::get "https://cartographer.online/latest/xlive.dll" "$EXEDIR\xlive.dll" /end            
+inetc::get "https://cartographer.online/latest/xlive.dll" "$EXEDIR\xlive.dll.latest" /end            
 Pop $0
 ${If} $0 == "OK"
-	DetailPrint "Download OK, installing $EXEDIR\xlive.dll to $INSTDIR"
-	CopyFiles "$EXEDIR\xlive.dll" $INSTDIR
+	DetailPrint "Downloading latest dll, but not installing"
+	CopyFiles "$EXEDIR\xlive.dll.latest" $INSTDIR
 ${Else}
 	DetailPrint "xlive.dll download error, using built in dll"
 ${EndIf}
-Delete "$EXEDIR\xlive.dll"
+Delete "$EXEDIR\xlive.dll.latest"
 SectionEnd
 
 ;Sections for dependencies install
@@ -200,19 +200,19 @@ Section "DirectX Install"
 
 SectionEnd
 
-Section "dotNET 4.5 Install" 
+; Section "dotNET 4.5 Install" 
 
-DetailPrint "Running .NET 4.5 setup..."
-ExecWait '"$INSTDIR\temp\dotnetfx452.exe" /passive /norestart' $netSetupError
-${If} $netSetupError != "0"
-	DetailPrint ".NET 4.5 not installed"
-${EndIf}
-DetailPrint "Finished .NET 4.5 setup. Return code: $netSetupError"
-Delete "$INSTDIR\temp\dotnetfx452.exe"
+; DetailPrint "Running .NET 4.5 setup..."
+; ExecWait '"$INSTDIR\temp\dotnetfx452.exe" /passive /norestart' $netSetupError
+; ${If} $netSetupError != "0"
+	; DetailPrint ".NET 4.5 not installed"
+; ${EndIf}
+; DetailPrint "Finished .NET 4.5 setup. Return code: $netSetupError"
+; Delete "$INSTDIR\temp\dotnetfx452.exe"
 
-SectionEnd
+; SectionEnd
 
-Section "Visual c++ 2013"
+Section "Visual C++ 2013"
  
  DetailPrint "Running Visual C++ 2013 setup..."
  DetailPrint "Installer may appear stuck, please wait for setup to continue"
@@ -416,7 +416,35 @@ Delete "$INSTDIR\sounds\infected.wav"
 
 Delete "$INSTDIR\soundbackends\directsound_win32.dll"
 Delete "$INSTDIR\soundbackends\windowsaudiosession_win32.dll"
- 
+
+Delete "$INSTDIR\sounds\Feliz_Navidad.wav"
+
+Delete "$INSTDIR\common\sounds\en\headhunter.wav"
+Delete "$INSTDIR\common\sounds\en\infected.wav"
+Delete "$INSTDIR\common\sounds\en\infection.wav"
+Delete "$INSTDIR\common\sounds\en\last_man_standing.wav"
+Delete "$INSTDIR\sounds\en\new_zombie.wav"
+Delete "$INSTDIR\sounds\en\skull_scored.wav"
+
+Delete "$INSTDIR\sounds\es\headhunter.wav"
+Delete "$INSTDIR\sounds\es\infected.wav"
+Delete "$INSTDIR\common\sounds\es\infection.wav"
+Delete "$INSTDIR\sounds\es\last_man_standing.wav"
+Delete "$INSTDIR\sounds\es\new_zombie.wav"
+Delete "$INSTDIR\sounds\es\skull_scored.wav"
+
+Delete "$INSTDIR\gungame.ini"
+Delete "$INSTDIR\h2customlanguage.ini"
+Delete "$INSTDIR\halo2.VisualElementsManifest.xml"
+Delete "$INSTDIR\libcrypto-1_1.dll"
+Delete "$INSTDIR\libssl-1_1.dll"
+Delete "$INSTDIR\startup.VisualElementsManifest.xml"
+Delete "$INSTDIR\ts3client.dll"
+Delete "$INSTDIR\ts3server.dll"
+Delete "$INSTDIR\Update.exe"
+Delete "$INSTDIR\xinput9_1_0.dll"
+
+
 RmDir "$INSTDIR\icons"
 RmDir "$INSTDIR\maps\fonts"
 RmDir /r "$INSTDIR\maps"
@@ -427,7 +455,10 @@ RmDir "$INSTDIR\sounds"
 RmDir "$INSTDIR\xinput\p02"
 RmDir "$INSTDIR\xinput"
 RmDir "$INSTDIR\Temp"
- 
+
+RmDir "$INSTDIR\dlc"
+RmDir "$INSTDIR\mods"
+
 Delete "$INSTDIR\uninstall.exe"
 !ifdef WEB_SITE
 Delete "$INSTDIR\${APP_NAME} website.url"
